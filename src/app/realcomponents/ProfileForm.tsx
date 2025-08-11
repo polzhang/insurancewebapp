@@ -18,7 +18,18 @@ interface ProfileData {
 }
 
 // Define Field component OUTSIDE of ProfileForm
-const Field = React.memo(({ label, id, value, onChange, type = "text", placeholder, options, textarea }) => (
+interface FieldProps {
+  label: string;
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+  placeholder?: string;
+  options?: [string, string][];
+  textarea?: boolean;
+}
+
+const Field: React.FC<FieldProps> = React.memo(({ label, id, value, onChange, type = "text", placeholder, options, textarea }) => (
   <div>
     <Label htmlFor={id} className="text-sm font-medium">{label}</Label>
     {options ? (
@@ -54,19 +65,31 @@ const Field = React.memo(({ label, id, value, onChange, type = "text", placehold
   </div>
 ));
 
-const ProfileForm = ({ profile = {} as ProfileData, onProfileUpdate = () => {} }) => {
+const ProfileForm = ({ profile = {} as ProfileData, onProfileUpdate = (_: ProfileData) => {} }) => {
   const [data, setData] = useState(profile);
-  const timeoutRef = useRef(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
-    clearTimeout(timeoutRef.current);
+    console.log(data)
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     timeoutRef.current = setTimeout(() => onProfileUpdate(data), 300);
-    return () => clearTimeout(timeoutRef.current);
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, [data]);
 
   // Use useCallback to prevent function recreation
-  const update = useCallback((field, value) => {
+  interface UpdateFn {
+    (field: keyof ProfileData, value: string): void;
+  }
+
+  const update: UpdateFn = useCallback((field, value) => {
     setData(prev => ({ ...prev, [field]: value }));
+    //console.log('Updated data:', data);
   }, []);
 
   return (

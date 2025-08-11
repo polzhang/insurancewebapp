@@ -1,103 +1,122 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import React, { useState } from 'react';
+import ChatInterface from './components/ChatInterface';
+import FileUploadArea from './components/FileUploadArea';
+import ProfileForm from './components/ProfileForm';
+
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+interface UploadedFile {
+  name: string;
+  size: number;
+  type: string;
+}
+
+interface ProfileData {
+  age: string;
+  gender: string;
+  annualIncome: string;
+  occupation: string;
+  relationshipStatus: string;
+  dependents: string;
+  educationLevel: string;
+}
+
+const AIChatbotPage: React.FC = () => {
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      role: 'assistant',
+      content: "Hello! I'm your AI life assistant. I can help you with financial planning, career advice, and life decisions. Feel free to upload documents or fill out your profile to get started."
+    }
+  ]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [profile, setProfile] = useState<ProfileData>({
+    age: '',
+    gender: '',
+    annualIncome: '',
+    occupation: '',
+    relationshipStatus: '',
+    dependents: '',
+    educationLevel: ''
+  });
+
+  const handleSendMessage = (message: string) => {
+    setMessages(prev => [...prev, { role: 'user', content: message }]);
+    setIsLoading(true);
+    
+    // Simulate AI response
+    setTimeout(() => {
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: "I understand you'd like help with that. Based on your profile and uploaded documents, I can provide personalized advice. Could you tell me more about your specific situation?" 
+      }]);
+      setIsLoading(false);
+    }, 1000);
+  };
+
+  const handleFileUpload = (file: File) => {
+    const uploadedFile: UploadedFile = {
+      name: file.name,
+      size: file.size,
+      type: file.type
+    };
+    setUploadedFiles(prev => [...prev, uploadedFile]);
+    
+    // Add a message about the file upload
+    setMessages(prev => [...prev, {
+      role: 'assistant',
+      content: `I've received your file "${file.name}". I'll analyze it to provide better personalized advice. What would you like to know about it?`
+    }]);
+  };
+
+  const handleFileRemove = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleProfileUpdate = (updatedProfile: ProfileData) => {
+    setProfile(updatedProfile);
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">AI Life Assistant</h1>
+          <p className="text-gray-600">Get personalized advice for your financial and life decisions</p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Chat Interface - Takes up 2 columns on large screens */}
+          <div className="lg:col-span-2 h-[600px]">
+            <ChatInterface
+              messages={messages}
+              onSendMessage={handleSendMessage}
+              isLoading={isLoading}
+            />
+          </div>
+          
+          {/* Sidebar with Profile and File Upload */}
+          <div className="space-y-6">
+            <ProfileForm
+              profile={profile}
+              onProfileUpdate={handleProfileUpdate}
+            />
+            
+            <FileUploadArea
+              uploadedFiles={uploadedFiles}
+              onFileUpload={handleFileUpload}
+              onFileRemove={handleFileRemove}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default AIChatbotPage;

@@ -1,48 +1,62 @@
+import os
+import json
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List, Optional
-import json
+from typing import List
+from openai import OpenAI
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = FastAPI()
 
-# CORS for React frontend
+# Enable CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Adjust this in production!
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Profile model matching your React component
-class ProfileData(BaseModel):
-    age: str = ""
-    gender: str = ""
-    maritalStatus: str = ""
-    dependents: str = ""
-    occupation: str = ""
-    employmentStatus: str = ""
-    annualIncome: str = ""
-    employerName: str = ""
-    height: str = ""
-    weight: str = ""
-    smokingStatus: str = ""
-    alcoholConsumption: str = ""
-    exerciseFrequency: str = ""
-    chronicConditions: str = ""
-    currentMedications: str = ""
-    familyMedicalHistory: str = ""
-    drivingRecord: str = ""
-    dangerousHobbies: str = ""
-    travelFrequency: str = ""
-    existingInsurance: str = ""
-    monthlyExpenses: str = ""
-    creditScore: str = ""
+# Initialize OpenAI (SEA-LION compatible) client using your API key from env
+client = OpenAI(
+    api_key=os.getenv("API_KEY"),  # Your API key env variable is API_KEY
+    base_url="https://api.sea-lion.ai/v1"
+)
 
-@app.get("/")
-def read_root():
-    return {"message": "Insurance Assistant API is running"}
+SYSTEM_PROMPT = """
+You are an AI insurance assistant designed to provide personalized insurance recommendations and evaluations. You receive three types of inputs:
+
+User queries (questions or requests).
+
+User profile information (demographics, health, financial info).
+
+Uploaded policy documents (PDFs).
+
+Your behavior should adapt according to the presence or absence of these inputs:
+
+If the user profile information (2) is missing or incomplete when the user asks for personalized recommendations or evaluations, prompt the user politely to complete their profile before proceeding.
+
+If the user uploads no policy documents (3) but asks for a policy recommendation, suggest suitable insurance policies from the internal database based solely on their profile data.
+
+If the user requests an evaluation of the suitability of specific insurance policies but has not uploaded any policy documents (3), ask the user kindly to upload their policy files for review.
+
+If the user profile (2) is complete and policy documents (3) are uploaded, provide a thorough evaluation or recommendation based on all available information.
+
+For all other user questions or requests not related to recommendations or evaluations, respond helpfully using general insurance knowledge.
+
+Always be clear, polite, and guide the user on what to do next if information is missing.
+
+Handle edge cases gracefully, for example:
+
+If user asks about something unrelated to insurance, respond politely that you specialize in insurance advice.
+
+If inputs are partially missing, specify exactly what is needed next.
+
+If the user uploads documents but no profile, still ask for profile completion before evaluation
+"""
 
 @app.post("/chat")
 async def chat_endpoint(
@@ -50,54 +64,53 @@ async def chat_endpoint(
     profile: str = Form(...),
     files: List[UploadFile] = File(default=[])
 ):
-    print("\n" + "="*50)
-    print("RECEIVED REQUEST:")
-    print("="*50)
-    
-    # Print message
-    print(f"MESSAGE: {message}")
-    
-    # Parse and print profile JSON
+    # Parse profile JSON safely
     try:
         profile_data = json.loads(profile)
-        print(f"PROFILE DATA:")
-        for key, value in profile_data.items():
-            if value:  # Only print non-empty values
-                print(f"  {key}: {value}")
-    except Exception as e:
-        print(f"PROFILE PARSING ERROR: {e}")
+    except Exception:
         profile_data = {}
-    
-    # Process and print files
-    file_info = []
+
+    # Build a summary string of profile data (only non-empty fields)
+    profile_summary_lines = []
+    for k, v in profile_data.items():
+        if v and str(v).strip() != "":
+            profile_summary_lines.append(f"- {k}: {v}")
+    profile_summary = "\n".join(profile_summary_lines) if profile_summary_lines else "No profile information provided."
+
+    # Summarize uploaded file names
     if files:
-        print(f"FILES RECEIVED: {len(files)}")
-        for i, file in enumerate(files):
-            content = await file.read()
-            file_info.append({
-                "filename": file.filename,
-                "size": len(content),
-                "content_type": file.content_type
-            })
-            print(f"  File {i+1}: {file.filename} ({len(content)} bytes, {file.content_type})")
+        file_names = [file.filename for file in files]
+        files_summary = f"Uploaded policy documents: {', '.join(file_names)}"
     else:
-        print("FILES: None")
-    
-    print("="*50)
-    print()
-    
-    # Simple response
-    response = f"Received message: '{message}'"
-    if profile_data.get('age'):
-        response += f" | Age: {profile_data['age']}"
-    if file_info:
-        response += f" | Files: {len(file_info)} uploaded"
-    
+        files_summary = "No policy documents uploaded."
+
+    # Combine all user info + query into one user message content
+    combined_user_content = (
+        f"User Profile Information:\n{profile_summary}\n\n"
+        f"{files_summary}\n\n"
+        f"User Query:\n{message}"
+    )
+
+    # Prepare messages array for chat completion
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": combined_user_content}
+    ]
+
+    # Call the SEA-LION chat completion endpoint
+    completion = client.chat.completions.create(
+        model="aisingapore/Gemma-SEA-LION-v3-9B-IT",
+        messages=messages
+    )
+
+    assistant_response = completion.choices[0].message.content
+
     return {
-        "response": response,
-        "profile_received": bool(profile_data),
-        "files_received": len(file_info)
+        "response": assistant_response,
+        "profile_received": bool(profile_summary_lines),
+        "files_received": len(files)
     }
+
 
 if __name__ == "__main__":
     import uvicorn

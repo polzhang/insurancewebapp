@@ -3,46 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import { User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
 interface ProfileData {
-  // Personal
-  age: string;
-  gender: string;
-  maritalStatus: string;
-  dependents: string;
-  
-  // Employment & Income
-  occupation: string;
-  employmentStatus: string;
-  annualIncome: string;
-  employerName: string;
-  
-  // Health & Lifestyle
-  height: string;
-  weight: string;
-  smokingStatus: string;
-  alcoholConsumption: string;
-  exerciseFrequency: string;
-  
-  // Medical
-  chronicConditions: string;
-  currentMedications: string;
-  familyMedicalHistory: string;
-  
-  // Risk Factors
-  drivingRecord: string;
-  dangerousHobbies: string;
-  travelFrequency: string;
-  
-  // Financial
-  existingInsurance: string;
-  monthlyExpenses: string;
-  creditScore: string;
+  age: string; gender: string; maritalStatus: string; dependents: string;
+  occupation: string; employmentStatus: string; annualIncome: string; employerName: string;
+  height: string; weight: string; smokingStatus: string; alcoholConsumption: string; exerciseFrequency: string;
+  chronicConditions: string; currentMedications: string; familyMedicalHistory: string;
+  drivingRecord: string; dangerousHobbies: string; travelFrequency: string;
+  existingInsurance: string; monthlyExpenses: string; creditScore: string;
 }
 
 interface ProfileFormProps {
@@ -51,417 +23,208 @@ interface ProfileFormProps {
 }
 
 const ProfileForm: React.FC<ProfileFormProps> = ({ profile, onProfileUpdate }) => {
-  const [mounted, setMounted] = useState(false);
-  
-  const defaultProfile: ProfileData = {
-    // Personal
-    age: '',
-    gender: '',
-    maritalStatus: '',
-    dependents: '',
-    
-    // Employment & Income
-    occupation: '',
-    employmentStatus: '',
-    annualIncome: '',
-    employerName: '',
-    
-    // Health & Lifestyle
-    height: '',
-    weight: '',
-    smokingStatus: '',
-    alcoholConsumption: '',
-    exerciseFrequency: '',
-    
-    // Medical
-    chronicConditions: '',
-    currentMedications: '',
-    familyMedicalHistory: '',
-    
-    // Risk Factors
-    drivingRecord: '',
-    dangerousHobbies: '',
-    travelFrequency: '',
-    
-    // Financial
-    existingInsurance: '',
-    monthlyExpenses: '',
-    creditScore: ''
-  };
-
-  const [formData, setFormData] = useState<ProfileData>(() => ({
-    ...defaultProfile,
-    ...profile
-  }));
+  const [localProfile, setLocalProfile] = useState<ProfileData>(profile);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (JSON.stringify(profile) !== JSON.stringify(localProfile)) {
+      setLocalProfile(profile);
+    }
+  }, [profile]);
 
-  const handleChange = (field: keyof ProfileData, value: string) => {
-    const updatedData = { ...formData, [field]: value };
-    setFormData(updatedData);
-    onProfileUpdate(updatedData);
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (JSON.stringify(localProfile) !== JSON.stringify(profile)) {
+        onProfileUpdate(localProfile);
+      }
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [localProfile]);
+
+  const updateField = (field: keyof ProfileData, value: string) => {
+    setLocalProfile(prev => ({ ...prev, [field]: value }));
   };
 
-  const SectionHeader = ({ title, number, isFirst = false }: { title: string; number: number; isFirst?: boolean }) => (
-    <div style={{ 
-      paddingTop: isFirst ? '8px' : '20px', 
-      marginTop: isFirst ? '0' : '20px', 
-      borderTop: isFirst ? 'none' : '1px solid #e5e7eb',
-      marginBottom: '12px'
-    }}>
-      <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '0' }}>
-        {number}. {title}
-      </h3>
-    </div>
-  );
-
-  const FormField = ({ 
-    label, 
-    children, 
-    className = "" 
-  }: { 
-    label: string; 
-    children: React.ReactNode;
-    className?: string;
+  const FormField = ({ label, id, type = "text", placeholder, children }: {
+    label: string; id: keyof ProfileData; type?: string; placeholder?: string; children?: React.ReactNode;
   }) => (
-    <div style={{ marginBottom: '16px' }} className={className}>
-      <Label style={{ fontSize: '14px', fontWeight: '500', color: '#374151', display: 'block', marginBottom: '8px' }}>{label}</Label>
-      {children}
+    <div>
+      <Label htmlFor={id} className="text-sm font-medium">{label}</Label>
+      {children || (
+        <Input
+          id={id}
+          type={type}
+          value={localProfile[id]}
+          onChange={(e) => updateField(id, e.target.value)}
+          placeholder={placeholder}
+          className="mt-1"
+          min={type === "number" ? "0" : undefined}
+        />
+      )}
     </div>
   );
 
-  // Prevent hydration mismatch by not rendering until mounted
-  if (!mounted) {
-    return (
-      <Card className="w-full" style={{ height: '550px', display: 'flex', flexDirection: 'column' }}>
-        <CardHeader style={{ paddingBottom: '8px', flexShrink: 0 }}>
-          <CardTitle style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '18px', fontWeight: 'bold', color: '#111827' }}>
-            <User style={{ width: '18px', height: '18px' }} />
-            Personal Profile
-          </CardTitle>
-          <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px' }}>
-            Complete your profile information for personalized recommendations
-          </p>
-          <div style={{ borderTop: '1px solid #e5e7eb', marginTop: '8px' }}></div>
-        </CardHeader>
-        <CardContent style={{ flex: 1, minHeight: 0, padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ color: '#6b7280' }}>Loading...</div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const SelectField = ({ label, id, placeholder, options }: {
+    label: string; id: keyof ProfileData; placeholder: string; options: { value: string; label: string }[];
+  }) => (
+    <FormField label={label} id={id}>
+      <Select value={localProfile[id]} onValueChange={(value) => updateField(id, value)}>
+        <SelectTrigger className="mt-1">
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map(option => (
+            <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </FormField>
+  );
+
+  const TextareaField = ({ label, id, placeholder }: {
+    label: string; id: keyof ProfileData; placeholder: string;
+  }) => (
+    <FormField label={label} id={id}>
+      <Textarea
+        id={id}
+        value={localProfile[id]}
+        onChange={(e) => updateField(id, e.target.value)}
+        placeholder={placeholder}
+        className="mt-1 min-h-[60px]"
+      />
+    </FormField>
+  );
+
+  const sections = [
+    {
+      title: "1. Personal Information",
+      fields: (
+        <div className="grid grid-cols-2 gap-4">
+          <FormField label="Age" id="age" type="number" placeholder="e.g., 25" />
+          <SelectField label="Gender" id="gender" placeholder="Select gender" 
+            options={[
+              {value: "male", label: "Male"}, {value: "female", label: "Female"}, {value: "other", label: "Other"}
+            ]} />
+          <SelectField label="Marital Status" id="maritalStatus" placeholder="Select status"
+            options={[
+              {value: "single", label: "Single"}, {value: "married", label: "Married"}, 
+              {value: "divorced", label: "Divorced"}, {value: "widowed", label: "Widowed"}
+            ]} />
+          <FormField label="Dependents" id="dependents" type="number" placeholder="0" />
+        </div>
+      )
+    },
+    {
+      title: "2. Employment & Income",
+      fields: (
+        <div className="space-y-4">
+          <FormField label="Occupation" id="occupation" placeholder="e.g., Software Engineer" />
+          <div className="grid grid-cols-2 gap-4">
+            <SelectField label="Employment Status" id="employmentStatus" placeholder="Select status"
+              options={[
+                {value: "full-time", label: "Full-time"}, {value: "part-time", label: "Part-time"},
+                {value: "self-employed", label: "Self-employed"}, {value: "unemployed", label: "Unemployed"},
+                {value: "retired", label: "Retired"}
+              ]} />
+            <FormField label="Annual Income (SGD)" id="annualIncome" placeholder="e.g., 75,000" />
+          </div>
+          <FormField label="Employer Name" id="employerName" placeholder="e.g., ABC Company Pte Ltd" />
+        </div>
+      )
+    },
+    {
+      title: "3. Health & Lifestyle",
+      fields: (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <FormField label="Height (cm)" id="height" type="number" placeholder="e.g., 170" />
+            <FormField label="Weight (kg)" id="weight" type="number" placeholder="e.g., 70" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <SelectField label="Smoking Status" id="smokingStatus" placeholder="Select status"
+              options={[
+                {value: "never", label: "Never smoked"}, {value: "former", label: "Former smoker"},
+                {value: "current", label: "Current smoker"}
+              ]} />
+            <SelectField label="Alcohol Consumption" id="alcoholConsumption" placeholder="Select frequency"
+              options={[
+                {value: "none", label: "None"}, {value: "occasional", label: "Occasional"},
+                {value: "moderate", label: "Moderate"}, {value: "heavy", label: "Heavy"}
+              ]} />
+          </div>
+          <SelectField label="Exercise Frequency" id="exerciseFrequency" placeholder="Select frequency"
+            options={[
+              {value: "none", label: "No exercise"}, {value: "1-2-weekly", label: "1-2 times per week"},
+              {value: "3-4-weekly", label: "3-4 times per week"}, {value: "daily", label: "Daily"}
+            ]} />
+        </div>
+      )
+    },
+    {
+      title: "4. Medical History",
+      fields: (
+        <div className="space-y-4">
+          <TextareaField label="Chronic Conditions" id="chronicConditions" placeholder="List any chronic conditions" />
+          <TextareaField label="Current Medications" id="currentMedications" placeholder="List current medications" />
+          <TextareaField label="Family Medical History" id="familyMedicalHistory" placeholder="List significant family medical history" />
+        </div>
+      )
+    },
+    {
+      title: "5. Risk Assessment",
+      fields: (
+        <div className="space-y-4">
+          <SelectField label="Driving Record" id="drivingRecord" placeholder="Select driving record"
+            options={[
+              {value: "clean", label: "Clean record"}, {value: "minor", label: "Minor violations"},
+              {value: "major", label: "Major violations"}, {value: "no-license", label: "No license"}
+            ]} />
+          <TextareaField label="High-Risk Activities" id="dangerousHobbies" placeholder="List any high-risk activities" />
+          <SelectField label="Travel Frequency" id="travelFrequency" placeholder="Select travel frequency"
+            options={[
+              {value: "rarely", label: "Rarely travel"}, {value: "domestic", label: "Domestic travel only"},
+              {value: "international", label: "International travel"}, {value: "frequent", label: "Frequent international traveler"}
+            ]} />
+        </div>
+      )
+    },
+    {
+      title: "6. Financial Information",
+      fields: (
+        <div className="space-y-4">
+          <TextareaField label="Existing Insurance" id="existingInsurance" placeholder="List current insurance policies" />
+          <div className="grid grid-cols-2 gap-4">
+            <FormField label="Monthly Expenses (SGD)" id="monthlyExpenses" placeholder="e.g., 4,000" />
+            <SelectField label="Credit Score Range" id="creditScore" placeholder="Select range"
+              options={[
+                {value: "excellent", label: "Excellent (800+)"}, {value: "good", label: "Good (670-799)"},
+                {value: "fair", label: "Fair (580-669)"}, {value: "poor", label: "Poor (Below 580)"},
+                {value: "unknown", label: "Unknown"}
+              ]} />
+          </div>
+        </div>
+      )
+    }
+  ];
 
   return (
-    <Card className="w-full" style={{ height: '550px', display: 'flex', flexDirection: 'column' }}>
-      <CardHeader style={{ paddingBottom: '8px', flexShrink: 0 }}>
-        <CardTitle style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '18px', fontWeight: 'bold', color: '#111827' }}>
-          <User style={{ width: '18px', height: '18px' }} />
+    <Card className="w-full h-[550px] flex flex-col">
+      <CardHeader className="pb-2 flex-shrink-0">
+        <CardTitle className="flex items-center gap-3 text-lg font-semibold">
+          <User className="w-5 h-5" />
           Personal Profile
         </CardTitle>
-        <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px' }}>
-          Complete your profile information for personalized recommendations
+        <p className="text-sm text-muted-foreground">
+          Complete your profile for personalized recommendations
         </p>
-        <div style={{ borderTop: '1px solid #e5e7eb', marginTop: '8px' }}></div>
       </CardHeader>
       
-      <CardContent style={{ overflowY: 'auto', padding: '0 24px 24px 24px', flex: 1, minHeight: 0 }}>
-        {/* Personal Information */}
-        <SectionHeader title="Personal Information" number={1} isFirst={true} />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%' }}>
-          <div>
-            <FormField label="Age">
-              <Input
-                type="number"
-                value={formData.age}
-                onChange={(e) => handleChange('age', e.target.value)}
-                placeholder="e.g., 25"
-                style={{ height: '40px', width: '100%' }}
-              />
-            </FormField>
+      <CardContent className="flex-1 overflow-y-auto space-y-6">
+        {sections.map((section, index) => (
+          <div key={index}>
+            <h3 className="text-base font-semibold mb-4 pb-2 border-b">{section.title}</h3>
+            {section.fields}
           </div>
-          
-          <div>
-            <FormField label="Gender">
-              <Select value={formData.gender} onValueChange={(value) => handleChange('gender', value)}>
-                <SelectTrigger style={{ height: '40px', width: '100%' }}>
-                  <SelectValue placeholder="Select gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%' }}>
-          <div>
-            <FormField label="Marital Status">
-              <Select value={formData.maritalStatus} onValueChange={(value) => handleChange('maritalStatus', value)}>
-                <SelectTrigger style={{ height: '40px', width: '100%' }}>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="single">Single</SelectItem>
-                  <SelectItem value="married">Married</SelectItem>
-                  <SelectItem value="divorced">Divorced</SelectItem>
-                  <SelectItem value="widowed">Widowed</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
-          </div>
-          
-          <div>
-            <FormField label="Number of Dependents">
-              <Input
-                type="number"
-                value={formData.dependents}
-                onChange={(e) => handleChange('dependents', e.target.value)}
-                placeholder="0"
-                min="0"
-                style={{ height: '40px', width: '100%' }}
-              />
-            </FormField>
-          </div>
-        </div>
-
-        {/* Employment & Income */}
-        <SectionHeader title="Employment & Income" number={2} />
-        <FormField label="Occupation">
-          <Input
-            value={formData.occupation}
-            onChange={(e) => handleChange('occupation', e.target.value)}
-            placeholder="e.g., Software Engineer"
-            style={{ height: '40px' }}
-          />
-        </FormField>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%' }}>
-          <div>
-            <FormField label="Employment Status">
-              <Select value={formData.employmentStatus} onValueChange={(value) => handleChange('employmentStatus', value)}>
-                <SelectTrigger style={{ height: '40px', width: '100%' }}>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="full-time">Full-time</SelectItem>
-                  <SelectItem value="part-time">Part-time</SelectItem>
-                  <SelectItem value="self-employed">Self-employed</SelectItem>
-                  <SelectItem value="unemployed">Unemployed</SelectItem>
-                  <SelectItem value="retired">Retired</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
-          </div>
-          
-          <div>
-            <FormField label="Annual Income (SGD)">
-              <Input
-                value={formData.annualIncome}
-                onChange={(e) => handleChange('annualIncome', e.target.value)}
-                placeholder="e.g., 75,000"
-                style={{ height: '40px', width: '100%' }}
-              />
-            </FormField>
-          </div>
-        </div>
-
-        <FormField label="Employer Name">
-          <Input
-            value={formData.employerName}
-            onChange={(e) => handleChange('employerName', e.target.value)}
-            placeholder="e.g., ABC Company Pte Ltd"
-            style={{ height: '40px' }}
-          />
-        </FormField>
-
-        {/* Health & Lifestyle */}
-        <SectionHeader title="Health & Lifestyle" number={3} />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%' }}>
-          <div>
-            <FormField label="Height (cm)">
-              <Input
-                type="number"
-                value={formData.height}
-                onChange={(e) => handleChange('height', e.target.value)}
-                placeholder="e.g., 170"
-                style={{ height: '40px', width: '100%' }}
-              />
-            </FormField>
-          </div>
-          
-          <div>
-            <FormField label="Weight (kg)">
-              <Input
-                type="number"
-                value={formData.weight}
-                onChange={(e) => handleChange('weight', e.target.value)}
-                placeholder="e.g., 70"
-                style={{ height: '40px', width: '100%' }}
-              />
-            </FormField>
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%' }}>
-          <div>
-            <FormField label="Smoking Status">
-              <Select value={formData.smokingStatus} onValueChange={(value) => handleChange('smokingStatus', value)}>
-                <SelectTrigger style={{ height: '40px', width: '100%' }}>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="never">Never smoked</SelectItem>
-                  <SelectItem value="former">Former smoker</SelectItem>
-                  <SelectItem value="current">Current smoker</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
-          </div>
-          
-          <div>
-            <FormField label="Alcohol Consumption">
-              <Select value={formData.alcoholConsumption} onValueChange={(value) => handleChange('alcoholConsumption', value)}>
-                <SelectTrigger style={{ height: '40px', width: '100%' }}>
-                  <SelectValue placeholder="Select frequency" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  <SelectItem value="occasional">Occasional</SelectItem>
-                  <SelectItem value="moderate">Moderate</SelectItem>
-                  <SelectItem value="heavy">Heavy</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
-          </div>
-        </div>
-
-        <FormField label="Exercise Frequency">
-          <Select value={formData.exerciseFrequency} onValueChange={(value) => handleChange('exerciseFrequency', value)}>
-            <SelectTrigger style={{ height: '40px' }}>
-              <SelectValue placeholder="Select frequency" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">No exercise</SelectItem>
-              <SelectItem value="1-2-weekly">1-2 times per week</SelectItem>
-              <SelectItem value="3-4-weekly">3-4 times per week</SelectItem>
-              <SelectItem value="daily">Daily</SelectItem>
-            </SelectContent>
-          </Select>
-        </FormField>
-
-        {/* Medical History */}
-        <SectionHeader title="Medical History" number={4} />
-        <FormField label="Chronic Conditions">
-          <Textarea
-            value={formData.chronicConditions}
-            onChange={(e) => handleChange('chronicConditions', e.target.value)}
-            placeholder="List any chronic conditions (e.g., diabetes, hypertension, asthma)"
-            style={{ minHeight: '80px', resize: 'vertical' }}
-          />
-        </FormField>
-
-        <FormField label="Current Medications">
-          <Textarea
-            value={formData.currentMedications}
-            onChange={(e) => handleChange('currentMedications', e.target.value)}
-            placeholder="List all current medications and dosages"
-            style={{ minHeight: '80px', resize: 'vertical' }}
-          />
-        </FormField>
-
-        <FormField label="Family Medical History">
-          <Textarea
-            value={formData.familyMedicalHistory}
-            onChange={(e) => handleChange('familyMedicalHistory', e.target.value)}
-            placeholder="List significant family medical history (e.g., heart disease, cancer, diabetes)"
-            style={{ minHeight: '80px', resize: 'vertical' }}
-          />
-        </FormField>
-
-        {/* Risk Factors */}
-        <SectionHeader title="Risk Assessment" number={5} />
-        <FormField label="Driving Record">
-          <Select value={formData.drivingRecord} onValueChange={(value) => handleChange('drivingRecord', value)}>
-            <SelectTrigger style={{ height: '40px' }}>
-              <SelectValue placeholder="Select driving record" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="clean">Clean record</SelectItem>
-              <SelectItem value="minor">Minor violations</SelectItem>
-              <SelectItem value="major">Major violations</SelectItem>
-              <SelectItem value="no-license">No license</SelectItem>
-            </SelectContent>
-          </Select>
-        </FormField>
-
-        <FormField label="High-Risk Activities or Hobbies">
-          <Textarea
-            value={formData.dangerousHobbies}
-            onChange={(e) => handleChange('dangerousHobbies', e.target.value)}
-            placeholder="List any high-risk activities (e.g., skydiving, rock climbing, motorsports)"
-            style={{ minHeight: '80px', resize: 'vertical' }}
-          />
-        </FormField>
-
-        <FormField label="Travel Frequency">
-          <Select value={formData.travelFrequency} onValueChange={(value) => handleChange('travelFrequency', value)}>
-            <SelectTrigger style={{ height: '40px' }}>
-              <SelectValue placeholder="Select travel frequency" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="rarely">Rarely travel</SelectItem>
-              <SelectItem value="domestic">Domestic travel only</SelectItem>
-              <SelectItem value="international">International travel</SelectItem>
-              <SelectItem value="frequent">Frequent international traveler</SelectItem>
-            </SelectContent>
-          </Select>
-        </FormField>
-
-        {/* Financial Information */}
-        <SectionHeader title="Financial Information" number={6} />
-        <FormField label="Existing Insurance Coverage">
-          <Textarea
-            value={formData.existingInsurance}
-            onChange={(e) => handleChange('existingInsurance', e.target.value)}
-            placeholder="List current insurance policies (life, health, auto, etc.)"
-            style={{ minHeight: '80px', resize: 'vertical' }}
-          />
-        </FormField>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%', marginBottom: '0' }}>
-          <div>
-            <FormField label="Monthly Expenses (SGD)">
-              <Input
-                value={formData.monthlyExpenses}
-                onChange={(e) => handleChange('monthlyExpenses', e.target.value)}
-                placeholder="e.g., 4,000"
-                style={{ height: '40px', width: '100%' }}
-              />
-            </FormField>
-          </div>
-          
-          <div>
-            <FormField label="Credit Score Range">
-              <Select value={formData.creditScore} onValueChange={(value) => handleChange('creditScore', value)}>
-                <SelectTrigger style={{ height: '40px', width: '100%' }}>
-                  <SelectValue placeholder="Select range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="excellent">Excellent (800+)</SelectItem>
-                  <SelectItem value="good">Good (670-799)</SelectItem>
-                  <SelectItem value="fair">Fair (580-669)</SelectItem>
-                  <SelectItem value="poor">Poor (Below 580)</SelectItem>
-                  <SelectItem value="unknown">Unknown</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
-          </div>
-        </div>
+        ))}
       </CardContent>
     </Card>
   );

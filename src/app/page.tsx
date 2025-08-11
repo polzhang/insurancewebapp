@@ -76,39 +76,40 @@ const AIChatbotPage: React.FC = () => {
   const [profile, setProfile] = useState<ProfileData>(initialProfile);
 
   const sendToBackend = async (message: string, attachments: Attachment[] = []) => {
-    try {
-      console.log('Sending to backend:', { message, profile, attachments: attachments.length });
-      
-      const formData = new FormData();
-      formData.append('message', message);
-      formData.append('profile', JSON.stringify(profile));
-      
-      // Add files to form data
-      attachments.forEach((attachment) => {
-        formData.append('files', attachment.file);
-      });
+  try {
+    console.log('Sending to backend:', { message, profile, attachments: attachments.length });
 
-      console.log('FormData created, sending request...');
+    const formData = new FormData();
+    formData.append('message', message);
+    formData.append('profile', JSON.stringify(profile));
 
-      const response = await fetch('http://localhost:8000/chat', {
-        method: 'POST',
-        body: formData,
-      });
+    // Add files to form data
+    attachments.forEach((attachment) => {
+      formData.append('files', attachment.file);
+    });
 
-      console.log('Response status:', response.status);
+    console.log('FormData created, sending request...');
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+    // Change this line
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      body: formData,
+    });
 
-      const data = await response.json();
-      console.log('Backend response:', data);
-      return data.response;
-    } catch (error) {
-      console.error('Error sending to backend:', error);
-      return 'Sorry, there was an error connecting to the server. Please try again.';
+    console.log('Response status:', response.status);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-  };
+
+    const data = await response.json();
+    console.log('Backend response:', data);
+    return data.response;
+  } catch (error) {
+    console.error('Error sending to backend:', error);
+    return 'Sorry, there was an error connecting to the server. Please try again.';
+  }
+};
 
   const handleSendMessage = useCallback(async (message: string, attachments?: Attachment[]) => {
     // Add user message immediately

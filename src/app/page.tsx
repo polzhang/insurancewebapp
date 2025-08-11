@@ -86,8 +86,8 @@ const AIChatbotPage: React.FC = () => {
           <p className="text-muted-foreground">Get personalized insurance recommendations and financial advice</p>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
             <ChatInterface
               messages={messages}
               onSendMessage={handleSendMessage}
@@ -95,7 +95,7 @@ const AIChatbotPage: React.FC = () => {
             />
           </div>
           
-          <div>
+          <div className="lg:col-span-1">
             <ProfileForm
               profile={profile}
               onProfileUpdate={setProfile}

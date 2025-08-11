@@ -104,14 +104,16 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ profile, onProfileUpdate }) =
     onProfileUpdate(updatedData);
   };
 
-  const SectionHeader = ({ title, isFirst = false }: { title: string; isFirst?: boolean }) => (
+  const SectionHeader = ({ title, number, isFirst = false }: { title: string; number: number; isFirst?: boolean }) => (
     <div style={{ 
-      paddingTop: isFirst ? '0' : '24px', 
-      marginTop: isFirst ? '0' : '24px', 
+      paddingTop: isFirst ? '8px' : '20px', 
+      marginTop: isFirst ? '0' : '20px', 
       borderTop: isFirst ? 'none' : '1px solid #e5e7eb',
-      marginBottom: '16px'
+      marginBottom: '12px'
     }}>
-      <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '0' }}>{title}</h3>
+      <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', marginBottom: '0' }}>
+        {number}. {title}
+      </h3>
     </div>
   );
 
@@ -134,15 +136,15 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ profile, onProfileUpdate }) =
   if (!mounted) {
     return (
       <Card className="w-full" style={{ height: '550px', display: 'flex', flexDirection: 'column' }}>
-        <CardHeader style={{ paddingBottom: '16px', flexShrink: 0 }}>
-          <CardTitle style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '20px', fontWeight: 'bold', color: '#111827' }}>
-            <User style={{ width: '20px', height: '20px' }} />
+        <CardHeader style={{ paddingBottom: '8px', flexShrink: 0 }}>
+          <CardTitle style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '18px', fontWeight: 'bold', color: '#111827' }}>
+            <User style={{ width: '18px', height: '18px' }} />
             Personal Profile
           </CardTitle>
-          <p style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>
+          <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px' }}>
             Complete your profile information for personalized recommendations
           </p>
-          <div style={{ borderTop: '1px solid #e5e7eb', marginTop: '16px' }}></div>
+          <div style={{ borderTop: '1px solid #e5e7eb', marginTop: '8px' }}></div>
         </CardHeader>
         <CardContent style={{ flex: 1, minHeight: 0, padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ color: '#6b7280' }}>Loading...</div>
@@ -153,20 +155,20 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ profile, onProfileUpdate }) =
 
   return (
     <Card className="w-full" style={{ height: '550px', display: 'flex', flexDirection: 'column' }}>
-      <CardHeader style={{ paddingBottom: '16px', flexShrink: 0 }}>
-        <CardTitle style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '20px', fontWeight: 'bold', color: '#111827' }}>
-          <User style={{ width: '20px', height: '20px' }} />
+      <CardHeader style={{ paddingBottom: '8px', flexShrink: 0 }}>
+        <CardTitle style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '18px', fontWeight: 'bold', color: '#111827' }}>
+          <User style={{ width: '18px', height: '18px' }} />
           Personal Profile
         </CardTitle>
-        <p style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>
+        <p style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px' }}>
           Complete your profile information for personalized recommendations
         </p>
-        <div style={{ borderTop: '1px solid #e5e7eb', marginTop: '16px' }}></div>
+        <div style={{ borderTop: '1px solid #e5e7eb', marginTop: '8px' }}></div>
       </CardHeader>
       
-      <CardContent style={{ overflowY: 'auto', padding: '0 24px', flex: 1, minHeight: 0 }}>
+      <CardContent style={{ overflowY: 'auto', padding: '0 24px 24px 24px', flex: 1, minHeight: 0 }}>
         {/* Personal Information */}
-        <SectionHeader title="Personal Information" isFirst={true} />
+        <SectionHeader title="Personal Information" number={1} isFirst={true} />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%' }}>
           <div>
             <FormField label="Age">
@@ -228,7 +230,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ profile, onProfileUpdate }) =
         </div>
 
         {/* Employment & Income */}
-        <SectionHeader title="Employment & Income" />
+        <SectionHeader title="Employment & Income" number={2} />
         <FormField label="Occupation">
           <Input
             value={formData.occupation}
@@ -278,7 +280,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ profile, onProfileUpdate }) =
         </FormField>
 
         {/* Health & Lifestyle */}
-        <SectionHeader title="Health & Lifestyle" />
+        <SectionHeader title="Health & Lifestyle" number={3} />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%' }}>
           <div>
             <FormField label="Height (cm)">
@@ -353,7 +355,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ profile, onProfileUpdate }) =
         </FormField>
 
         {/* Medical History */}
-        <SectionHeader title="Medical History" />
+        <SectionHeader title="Medical History" number={4} />
         <FormField label="Chronic Conditions">
           <Textarea
             value={formData.chronicConditions}
@@ -382,7 +384,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ profile, onProfileUpdate }) =
         </FormField>
 
         {/* Risk Factors */}
-        <SectionHeader title="Risk Assessment" />
+        <SectionHeader title="Risk Assessment" number={5} />
         <FormField label="Driving Record">
           <Select value={formData.drivingRecord} onValueChange={(value) => handleChange('drivingRecord', value)}>
             <SelectTrigger style={{ height: '40px' }}>
@@ -421,7 +423,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ profile, onProfileUpdate }) =
         </FormField>
 
         {/* Financial Information */}
-        <SectionHeader title="Financial Information" />
+        <SectionHeader title="Financial Information" number={6} />
         <FormField label="Existing Insurance Coverage">
           <Textarea
             value={formData.existingInsurance}

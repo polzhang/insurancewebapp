@@ -99,7 +99,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, onSendMessage, 
         )}
       </CardContent>
 
-      <div className="p-6 pt-4 border-t border-gray-200 flex-shrink-0">
+      <div className="px-6 pt-3 pb-3 border-t border-gray-200 flex-shrink-0">
         <form onSubmit={handleSubmit} className="flex gap-3 items-end">
           <div className="flex-1">
             <Input
@@ -120,7 +120,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ messages, onSendMessage, 
             <Send className="w-4 h-4" />
           </Button>
         </form>
-        <p className="text-xs text-gray-500 mt-2">
+        <p className="text-xs text-gray-500 mt-1">
           Press Enter to send • AI responses are for informational purposes only
         </p>
       </div>
